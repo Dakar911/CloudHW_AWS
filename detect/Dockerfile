@@ -7,6 +7,8 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+COPY MobileNetSSD_deploy.prototxt /app/
+COPY MobileNetSSD_deploy.caffemodel /app/
 COPY . .
 
 RUN pip install -r requirements.txt

@@ -18,6 +18,19 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
+        env:
+          - name: REDIS_HOST
+            value: "redis"
+          - name: REDIS_PORT
+            value: "6379"
+          - name: MINIO_ENDPOINT
+            value: "minio:9000"
+          - name: MINIO_ACCESS_KEY
+            value: "minioadmin"
+          - name: MINIO_SECRET_KEY
+            value: "minioadmin"
+          - name: MINIO_BUCKET
+            value: "images"
 ---
 apiVersion: v1
 kind: Service

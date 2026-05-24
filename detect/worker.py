@@ -1,3 +1,4 @@
+import os
 import cv2
 import numpy as np
 from minio import Minio
@@ -15,27 +16,32 @@ CLASSES = [
 CONFIDENCE_MIN = 0.4
 
 net = cv2.dnn.readNetFromCaffe(
-    "MobileNetSSD_deploy.prototxt",
-    "MobileNetSSD_deploy.caffemodel"
+    "/app/MobileNetSSD_deploy.prototxt",
+    "/app/MobileNetSSD_deploy.caffemodel"
 )
 
-r = redis.Redis(host="redis", port=6379, decode_responses=True)
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "minio:9000")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "images")
+
+r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
 
 minio_client = Minio(
-    "minio:9000",
-    access_key="minioadmin",
-    secret_key="minioadmin",
+    MINIO_ENDPOINT,
+    access_key=MINIO_ACCESS_KEY,
+    secret_key=MINIO_SECRET_KEY,
     secure=False
 )
-
-BUCKET = "images"
 
 while True:
     _, path = r.blpop("detect_queue")
 
     print(f"[DETECT] processing {path}")
 
-    obj = minio_client.get_object(BUCKET, path)
+    obj = minio_client.get_object(MINIO_BUCKET, path)
     data = obj.read()
 
     image = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
@@ -71,7 +77,7 @@ while True:
     json_data = json.dumps(results).encode()
 
     minio_client.put_object(
-        BUCKET,
+        MINIO_BUCKET,
         metadata_path,
         io.BytesIO(json_data),
         len(json_data),
