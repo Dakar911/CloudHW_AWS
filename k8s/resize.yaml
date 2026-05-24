@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resize
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resize
+  template:
+    metadata:
+      labels:
+        app: resize
+    spec:
+      containers:
+      - name: resize
+        image: resize:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resize
+spec:
+  selector:
+    app: resize
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP

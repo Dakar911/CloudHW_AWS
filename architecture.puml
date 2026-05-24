@@ -1,0 +1,63 @@
+@startuml
+skinparam linetype ortho
+skinparam nodesep 170
+skinparam ranksep 100
+title Monolith → Microservices Architecture
+
+actor User
+
+rectangle "Kubernetes Cluster" {
+
+rectangle "ImageGrab Service (FastAPI)" {
+component "HTTP Upload API"
+}
+
+rectangle "Redis (Message Queue)" {
+queue "resize_queue"
+queue "grayscale_queue"
+queue "detect_queue"
+queue "tag_queue"
+}
+
+rectangle "MinIO (Object Storage)" {
+database "Image Bucket"
+}
+
+rectangle "Resize Service" {
+component "Resize Worker"
+}
+
+rectangle "Grayscale Service" {
+component "Grayscale Worker"
+}
+
+rectangle "ObjectDetect Service" {
+component "Detection Worker"
+}
+
+rectangle "Tag Service" {
+component "Tag Worker"
+}
+}
+
+User --> "HTTP Upload API" : upload image
+
+"HTTP Upload API" --> "Image Bucket" : store original image
+"HTTP Upload API" --> "resize_queue" : send image path
+
+"resize_queue" --> "Resize Worker"
+"Resize Worker" --> "Image Bucket" : read/write image
+"Resize Worker" --> "grayscale_queue"
+
+"grayscale_queue" --> "Grayscale Worker"
+"Grayscale Worker" --> "Image Bucket"
+"Grayscale Worker" --> "detect_queue"
+
+"detect_queue" --> "Detection Worker"
+"Detection Worker" --> "Image Bucket"
+"Detection Worker" --> "tag_queue"
+
+"tag_queue" --> "Tag Worker"
+"Tag Worker" --> "Image Bucket" : save final result
+
+@enduml

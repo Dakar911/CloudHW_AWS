@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: detect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: detect
+  template:
+    metadata:
+      labels:
+        app: detect
+    spec:
+      containers:
+      - name: detect
+        image: detect:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: detect
+spec:
+  selector:
+    app: detect
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP

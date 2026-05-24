@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grayscale
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grayscale
+  template:
+    metadata:
+      labels:
+        app: grayscale
+    spec:
+      containers:
+      - name: grayscale
+        image: grayscale:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grayscale
+spec:
+  selector:
+    app: grayscale
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP
