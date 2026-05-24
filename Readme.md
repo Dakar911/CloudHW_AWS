@@ -29,27 +29,19 @@ sudo apt install python3.12-venv
 python3 -m venv venv
 . venv/bin/activate
 ```
-
 Install the dependencies
 ```sh
 pip install -r requirements.txt
 ```
-
 Run the application
 ```sh
 python monolith.py
 ```
-
 The image with the detected objects is generated to the result.jpg file.
 
-Windows:
-```
-python --version
-python -m venv venv
-.\venv\Scripts\Activate.ps1 vagy venv\Scripts\activate.bat
-pip install -r requirements.txt
-```
-Cloud:
+## 20GB hely kelleni fog
+
+Cloud Build:
 ```
 cd imagegrab
 sudo docker build -t imagegrab:latest .
@@ -61,14 +53,28 @@ cd ../detect
 sudo docker build -t detect:latest .
 cd ../tag
 sudo docker build -t tag:latest .
+
+sudo docker build -t imagegrab:latest ./imagegrab
+sudo docker build -t resize:latest ./resize
+sudo docker build -t grayscale:latest ./grayscale
+sudo docker build -t detect:latest ./detect
+sudo docker build -t tag:latest ./tag
 ```
-Build Parancsok
+Kimentés
 ```
-docker build -t imagegrab:latest ./imagegrab
-docker build -t detect:latest ./detect
-docker build -t resize:latest ./resize
-docker build -t grayscale:latest ./grayscale
-docker build -t tag:latest ./tag
+sudo docker save imagegrab:latest -o imagegrab.tar
+sudo docker save resize:latest -o resize.tar
+sudo docker save grayscale:latest -o grayscale.tar
+sudo docker save detect:latest -o detect.tar
+sudo docker save tag:latest -o tag.tar
+```
+Import
+```
+sudo k3s ctr images import imagegrab.tar
+sudo k3s ctr images import resize.tar
+sudo k3s ctr images import grayscale.tar
+sudo k3s ctr images import detect.tar
+sudo k3s ctr images import tag.tar
 ```
 Kubernetes Deploy
 ```
@@ -94,11 +100,25 @@ kubectl get pods
 kubectl get svc
 curl.exe -X POST -F "file=@test-1.jpg" http://localhost:30080/upload
 ```
+TCP inbound rule beállítás
+```
+EC2 > Security > Inbound Rules > TCP 30003 Source:0.0.0.0/0
+```
 Login
 ```
-http://localhost:30003/login
+http://<ec2-p>:30003/
 minioadmin
 minioadmin
+```
+Törlés
+```
+kubectl delete deployment --all
+kubectl delete service --all
+kubectl delete all --all
+```
+Minden container + image + cache tisztítás:
+```
+docker system prune -a
 ```
 
 ## Your Task
