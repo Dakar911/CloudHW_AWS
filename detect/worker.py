@@ -44,11 +44,27 @@ while True:
     obj = minio_client.get_object(MINIO_BUCKET, path)
     data = obj.read()
 
+    #image = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+    #h, w = image.shape[:2]
+
     image = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
-
     h, w = image.shape[:2]
+    original_path = path.replace("gray.jpg", "original.jpg")
+    original_obj = minio_client.get_object(MINIO_BUCKET, original_path)
+    original_data = original_obj.read()
+    original_image = cv2.imdecode(
+        np.frombuffer(original_data, np.uint8),
+        cv2.IMREAD_COLOR
+    )
+    origin_h, origin_w = original_image.shape[:2]
 
-    blob = cv2.dnn.blobFromImage(image, 0.007843, (w, h), 127.5)
+
+
+
+
+
+
+    blob = cv2.dnn.blobFromImage(image, 0.007843, (300, 300), 127.5)
 
     net.setInput(blob)
     detections = net.forward()
@@ -61,7 +77,12 @@ while True:
         if confidence > CONFIDENCE_MIN:
             idx = int(detections[0, 0, i, 1])
 
-            box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+            box = detections[0, 0, i, 3:7] * np.array([
+                origin_w,
+                origin_h,
+                origin_w,
+                origin_h
+            ])
             (startX, startY, endX, endY) = box.astype("int")
 
             results.append({
@@ -72,7 +93,7 @@ while True:
                 "endY": int(endY)
             })
 
-    metadata_path = path.replace(".jpg", ".json")
+    metadata_path = path.replace("gray.jpg", "detect.json")
 
     json_data = json.dumps(results).encode()
 
@@ -84,7 +105,8 @@ while True:
         content_type="application/json"
     )
 
+    original_path = path.replace("gray.jpg", "original.jpg")
     r.rpush("tag_queue", json.dumps({
-        "image": path,
+        "image": original_path,
         "metadata": metadata_path
     }))

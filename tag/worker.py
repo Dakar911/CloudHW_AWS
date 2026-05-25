@@ -63,7 +63,7 @@ while True:
             2
         )
 
-    final_path = f"final-{path}"
+    final_path = path.replace("original.jpg", "final.jpg")
 
     _, encoded = cv2.imencode('.jpg', image)
     encoded_bytes = encoded.tobytes()

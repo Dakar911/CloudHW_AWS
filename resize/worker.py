@@ -23,8 +23,8 @@ minio_client = Minio(
 
 while True:
     _, path = r.blpop("resize_queue")
-
-    print(f"[RESIZE] processing {path}")
+    new_path = path.replace("original", "resize")
+    print(f"[RESIZE] processing {new_path}")
 
     obj = minio_client.get_object(MINIO_BUCKET, path)
     data = obj.read()
@@ -38,10 +38,10 @@ while True:
 
     minio_client.put_object(
         MINIO_BUCKET,
-        path,
+        new_path,
         io.BytesIO(encoded.tobytes()),
         len(encoded.tobytes()),
         content_type="image/jpeg"
     )
 
-    r.rpush("grayscale_queue", path)
+    r.rpush("grayscale_queue", new_path)

@@ -1,4 +1,6 @@
 import os
+from types import new_class
+
 from fastapi import FastAPI, UploadFile, File
 import uuid
 from minio import Minio
@@ -32,21 +34,21 @@ def startup():
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())
-    file_path = f"{file_id}.jpg"
+    new_path = f"{file_id}/original.jpg"
 
     data = await file.read()
 
     minio_client.put_object(
         MINIO_BUCKET,
-        file_path,
+        new_path,
         io.BytesIO(data),
         length=len(data),
         content_type="image/jpeg"
     )
 
-    r.rpush("resize_queue", file_path)
+    r.rpush("resize_queue", new_path)
 
     return {
         "status": "uploaded",
-        "file": file_path
+        "file": new_path
     }
