@@ -44,9 +44,6 @@ while True:
     obj = minio_client.get_object(MINIO_BUCKET, path)
     data = obj.read()
 
-    #image = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
-    #h, w = image.shape[:2]
-
     image = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
     h, w = image.shape[:2]
     original_path = path.replace("gray.jpg", "original.jpg")
@@ -57,12 +54,6 @@ while True:
         cv2.IMREAD_COLOR
     )
     origin_h, origin_w = original_image.shape[:2]
-
-
-
-
-
-
 
     blob = cv2.dnn.blobFromImage(image, 0.007843, (300, 300), 127.5)
 
